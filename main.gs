@@ -3,10 +3,14 @@ function post_test() {
   var prop = PropertiesService.getScriptProperties().getProperties();
   // slackApp インスタンスの取得
   var slackApp = SlackApp.create(prop.slackApiToken);
-  // #testのchannel idを取得
-  var channelId = 'C0241UA8PHQ'
-  // var channelId = slackApp.channelsList().channels[0].id;
+  // channelIdたちを保存
+  var channelIds = {
+    testPrivate: 'C024TLZ7MBJ',
+    test: 'C0241UA8PHQ',
+  }
+  // channkeId
+  var channelId = channelIds.testPrivate
 
 　// 投稿
-  slackApp.chatPostMessage(channelId, "Hello world!", {scope:'global'})
+  slackApp.chatPostMessage(channelId, "Hello world!")
 }
