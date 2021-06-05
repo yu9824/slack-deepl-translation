@@ -18,28 +18,32 @@ function doPost(e) {
       } catch (er) {
         to_spread_sheet(er, 'A4')
       }
+    }
     // ======= Event API Verification 時の承認を超えるためのコード終了 =======
-    } else if (json.event.type == 'reaction_added') {
+    
+    else if (json.event.type == 'reaction_added') {
       //jsonから必要な情報をとる．
       const channelId = json.event.item.channel;  // channelId
       const ts = json.event.item.ts;  // タイムスタンプではなく，スレッドのIDらしい．
       const reaction = json.event.reaction; // 絵文字リアクションの種類
-
-      post_message(reaction, channelId)
+      
+      to_spread_sheet(reaction, 'A1')
 
       // そのリアクションが付いたメッセージの情報を取得
       try {
-        var reply = get_replies(channelId, ts)
+        get_replies(channelId, ts)
       } catch (er) {
         to_spread_sheet(er, 'A11')
       }
       // そのメッセージの具体的なテキストを取得
+      var response = get_replies(channelId, ts)
       try {
-        post_message(reply.text, channelId)
+        post_message(response.text, channelId)
       } catch (er) {
         to_spread_sheet(er, 'J3')
       }
-      
+      var original_message = response.messages[0].text
+      post_message(original_message, channelId)
       // to_spread_sheet(reply.text, "J2")
     } else {
       to_spread_sheet(json, 'J4')
