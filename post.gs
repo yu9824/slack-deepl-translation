@@ -1,4 +1,10 @@
-function post_test() {
+function post_message_test(){
+  let message = "Hello world!"
+  post_message(message)
+}
+
+
+function post_message(message) {
   // propertyの取得
   var prop = PropertiesService.getScriptProperties().getProperties();
   // slackApp インスタンスの取得
@@ -9,8 +15,9 @@ function post_test() {
     test: 'C0241UA8PHQ',
   }
   // channkeId
-  var channelId = channelIds.testPrivate
+  var channelId = channelIds.test
 
 　// 投稿
-  slackApp.chatPostMessage(channelId, "Hello world!")
+  slackApp.chatPostMessage(channelId, message)
 }
+
