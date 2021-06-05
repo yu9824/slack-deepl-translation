@@ -2,50 +2,55 @@
 // doPostとは特別な関数名．Webアプリが実行されたとき？厳密な定義はよくわかりませんが呼び出される関数．
 // doGetもそれに近いもののよう．
 function doPost(e) {
-  // ======= Event API Verification 時の承認を超えるためのコード =======
-  // try-catchを使って他の時にエラーにならないようにしているのだと思う．たぶん．
-  try {
-    var json = JSON.parse(e.postData.getDataAsString());
-    if (json.type == "url_verification") {
-      return ContentService.createTextOutput(json.challenge);        
-    }
-  }
-  catch (ex) {
-    to_spread_sheet(ex, "A2");
-  } 
-  // ======= Event API Verification 時の承認を超えるためのコード終了 =======
-
   try {
     try {
       var json = JSON.parse(e.postData.getDataAsString());
+    } catch {
+      // 毎回正式なAPIの動作を実行できないので，ローカルで実行するための "場合わけ"
+      var json = JSON.parse(e)
     }
-    catch {
 
-    }
-    var json = JSON.parse(e)
-  }
-  catch {
-    to_spread_sheet(e, "A3");
-  }
+    // ======= Event API Verification 時の承認を超えるためのコード =======
+    if (json.type == "url_verification") {
+      to_spread_sheet(json, 'A3')
+      try {
+        return ContentService.createTextOutput(json.challenge);
+      } catch (er) {
+        to_spread_sheet(er, 'A4')
+      }
+    // ======= Event API Verification 時の承認を超えるためのコード終了 =======
+    } else if (json.event.type == 'reaction_added') {
+      //jsonから必要な情報をとる．
+      const channelId = json.event.item.channel;  // channelId
+      const ts = json.event.item.ts;  // タイムスタンプではなく，スレッドのIDらしい．
+      const reaction = json.event.reaction; // 絵文字リアクションの種類
 
-  try {
-    // var json = JSON.parse(e.postData.getDataAsString());
-    to_spread_sheet(json, 'C1')
-    var channel = json.event.item.channel;  // channelId
-    var ts = json.event.item.ts;  // タイムスタンプではなく，スレッドのIDらしい．
-    var reaction = json.event.reaction; // 絵文字リアクションの種類
-    to_spread_sheet(reaction, 'B1');
-    if (json.event.type == 'reaction_added') {
-      post_message(reaction)
+      post_message(reaction, channelId)
+
+      // そのリアクションが付いたメッセージの情報を取得
+      try {
+        var reply = get_replies(channelId, ts)
+      } catch (er) {
+        to_spread_sheet(er, 'A11')
+      }
+      // そのメッセージの具体的なテキストを取得
+      try {
+        post_message(reply.text, channelId)
+      } catch (er) {
+        to_spread_sheet(er, 'J3')
+      }
+      
+      // to_spread_sheet(reply.text, "J2")
+    } else {
+      to_spread_sheet(json, 'J4')
     }
-  }   
-  catch (e) {
-    to_spread_sheet(e, "A5");
-  }
+  } catch (ex) {
+    to_spread_sheet(ex, "A2");
+  } 
 }
 
 
-function doPost_test () {
+function _doPost_test () {
   var e_example = {
       event: {
         type: "reaction_added",
