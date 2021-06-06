@@ -29,20 +29,36 @@ function doPost(e) {
       const ts = json.event.item.ts;  // タイムスタンプではなく，スレッドのIDらしい．
       const reaction = json.event.reaction; // 絵文字リアクションの種類
 
-      // to_spread_sheet(json, 'E1')
-
-      // そのリアクションが付いたメッセージの情報を取得
-      try {
-        get_replies(channelId, ts)
+      // 翻訳のトリガーになるスタンプ記号
+      const target_flags = {
+        "gb": 'EN-GB',
+        "us": 'EN-US',
+        "cn": 'ZH',
+        "jp": 'JA',
+        "fr": 'FR',
+        "it": 'IT',
+        "de": 'DE',
       }
-      catch (er) {
-        to_spread_sheet(er, 'A11')
+      // 翻訳のトリガーになるスタンプ記号の一覧に含まれていたならば．
+      // 翻訳可能先一覧: https://www.deepl.com/docs-api/translating-text/
+      // スタンプ記号名前一覧: https://qiita.com/yamadashy/items/ae673f2bae8f1525b6af
+      if (reaction in target_flags) {
+        // そのリアクションが付いたメッセージの情報を取得
+        try {
+          get_replies(channelId, ts)
+        }
+        catch (er) {
+          to_spread_sheet(er, 'A11')
+        }
+        // そのメッセージの具体的なテキストを取得
+        var response = get_replies(channelId, ts)
+        var original_message = response.messages[0].text
+        // 翻訳
+        var result = translate(original_message, target_flags[reaction])
+        var translated = result.translations[0].text
+        // 投稿
+        post_message(translated, channelId, ts)
       }
-      // そのメッセージの具体的なテキストを取得
-      var response = get_replies(channelId, ts)
-      var original_message = response.messages[0].text
-
-      post_message('aha', channelId, ts)
     }
     else {
       to_spread_sheet(json, 'J4')
